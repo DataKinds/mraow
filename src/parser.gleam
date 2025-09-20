@@ -10,6 +10,10 @@ pub opaque type Canonical {
   Canonical(canon: String)
 }
 
+pub fn uncanon(x: Canonical) {
+  x.canon
+}
+
 fn lexer() -> splitter.Splitter {
   splitter.new(["(", ")", " "])
 }
@@ -42,7 +46,7 @@ pub fn canonicalize(x: String) -> Canonical {
 }
 
 pub type Peeker {
-  Peeker(token: String, rest: Canonical)
+  Peeker(token: Canonical, rest: Canonical)
   NoMoreInput
 }
 
@@ -58,7 +62,7 @@ pub fn peek(x: Canonical) -> Peeker {
   case pre, split {
     "", "" -> NoMoreInput
     "", _ -> post |> Canonical |> peek
-    _, _ -> Peeker(pre, Canonical(post))
+    _, _ -> Peeker(Canonical(pre), Canonical(post))
   }
 }
 
@@ -77,12 +81,12 @@ fn gaze_rec(
   case peek(x) {
     NoMoreInput -> None
     Peeker(tok, rest) ->
-      case tok {
-        "(" -> gaze_rec(rest, append(tok), depth + 1)
-        ")" if depth == 1 -> Some(#(append_with_space(tok), rest))
-        ")" -> gaze_rec(rest, append_with_space(tok), depth - 1)
-        _ if depth == 0 -> Some(#(string_tree.from_string(tok), rest))
-        _ -> gaze_rec(rest, append_with_space(tok), depth)
+      case tok.canon {
+        "(" -> gaze_rec(rest, append(tok.canon), depth + 1)
+        ")" if depth == 1 -> Some(#(append_with_space(tok.canon), rest))
+        ")" -> gaze_rec(rest, append_with_space(tok.canon), depth - 1)
+        _ if depth == 0 -> Some(#(string_tree.from_string(tok.canon), rest))
+        _ -> gaze_rec(rest, append_with_space(tok.canon), depth)
       }
   }
 }
@@ -90,7 +94,20 @@ fn gaze_rec(
 /// Take a canonicalized input and pop a paren-delimited term off the front
 pub fn gaze(x: Canonical) -> Peeker {
   case gaze_rec(x, string_tree.from_string(""), 0) {
-    Some(#(term, rest)) -> Peeker(string_tree.to_string(term), rest)
+    Some(#(term, rest)) ->
+      Peeker(string_tree.to_string(term) |> Canonical, rest)
     None -> NoMoreInput
+  }
+}
+
+/// Version of gaze you can `use`.
+pub fn gaze_then(
+  x: Canonical,
+  cb: fn(#(Canonical, Canonical)) -> Option(out),
+) -> Option(out) {
+  case gaze_rec(x, string_tree.from_string(""), 0) {
+    Some(#(term, rest)) ->
+      #(string_tree.to_string(term) |> Canonical, rest) |> cb
+    None -> None
   }
 }

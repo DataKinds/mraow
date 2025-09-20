@@ -1,6 +1,6 @@
-import canonicalize as cnon
 import gleam/list
 import gleam/option
+import parser as cnon
 import runtime.{type Runtime}
 import splitter
 
@@ -34,7 +34,7 @@ pub fn main() -> Nil {
   //   )
   // echo cnon.gaze(c)
   // echo dbg_peek_all(c)
-  let r = echo runtime.new("hello (world (123 ))    ")
+  let r = echo runtime.new("hello (world (123 ))  <> 123 456  ")
   r
   |> echo
   |> runtime.step
