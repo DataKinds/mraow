@@ -66,7 +66,7 @@ fn gaze_rec(
   x: Canonical,
   token_history: string_tree.StringTree,
   depth: Int,
-) -> Option(string_tree.StringTree) {
+) -> Option(#(string_tree.StringTree, Canonical)) {
   // TODO: these are expensive closures to put in a tight loop!
   let append = string_tree.append(token_history, _)
   let append_with_space = fn(tok: String) -> string_tree.StringTree {
@@ -79,20 +79,18 @@ fn gaze_rec(
     Peeker(tok, rest) ->
       case tok {
         "(" -> gaze_rec(rest, append(tok), depth + 1)
-        ")" if depth == 1 -> Some(append_with_space(tok))
+        ")" if depth == 1 -> Some(#(append_with_space(tok), rest))
         ")" -> gaze_rec(rest, append_with_space(tok), depth - 1)
-        _ if depth == 0 -> Some(string_tree.from_string(tok))
+        _ if depth == 0 -> Some(#(string_tree.from_string(tok), rest))
         _ -> gaze_rec(rest, append_with_space(tok), depth)
       }
   }
 }
 
 /// Take a canonicalized input and pop a paren-delimited term off the front
-/// TODO: this should return the `rest` arugment from the Peeker correctly
-/// but I am too tired to fixup the `gaze_rec` function to return `rest`!
 pub fn gaze(x: Canonical) -> Peeker {
   case gaze_rec(x, string_tree.from_string(""), 0) {
-    Some(term) -> Peeker(string_tree.to_string(term), "" |> canonicalize)
+    Some(#(term, rest)) -> Peeker(string_tree.to_string(term), rest)
     None -> NoMoreInput
   }
 }

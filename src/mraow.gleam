@@ -27,16 +27,24 @@ fn dbg_peek_all(c: cnon.Canonical) -> Nil {
 }
 
 pub fn main() -> Nil {
-  echo "Hello from mraow!"
-  let c =
-    echo cnon.canonicalize(
-      "(hello             world 1 2345(() ))) owo () () () owo",
-    )
-  echo cnon.gaze(c)
-  echo dbg_peek_all(c)
+  // echo "Hello from mraow!"
+  // let c =
+  //   echo cnon.canonicalize(
+  //     "(hello             world 1 2345(() ))) owo () () () owo",
+  //   )
+  // echo cnon.gaze(c)
+  // echo dbg_peek_all(c)
   let r = echo runtime.new("hello (world (123 ))    ")
-  use r1 <- runtime.step(r)
-  use r2 <- runtime.step(r1)
-  use _r3 <- runtime.step(r2)
+  r
+  |> echo
+  |> runtime.step
+  |> echo
+  |> runtime.step
+  |> echo
+  |> runtime.step
+  |> echo
+  |> runtime.step
+  |> echo
+  |> runtime.step
   Nil
 }

@@ -11,14 +11,12 @@ pub fn new(s: String) -> Runtime {
 }
 
 /// Step the runtime forward 1 execution step
-pub fn step(r: Runtime, callback: fn(Runtime) -> Nil) -> Nil {
-  let new_focus = case cnon.peek(r.focus) {
+pub fn step(r: Runtime) -> Runtime {
+  let new_focus = case cnon.gaze(r.focus) {
     cnon.NoMoreInput -> r.input
-    cnon.Peeker(tok, rest) -> {
-      echo tok
+    cnon.Peeker(_, rest) -> {
       rest
     }
   }
-  let r_upd = Runtime(..r, focus: new_focus)
-  callback(r_upd)
+  Runtime(..r, focus: new_focus)
 }
