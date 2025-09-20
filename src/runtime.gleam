@@ -60,7 +60,8 @@ pub fn eat_recipe(r: Runtime) -> Option(Runtime) {
         |> drop_gaze
         |> option.then(drop_gaze)
         |> option.then(drop_gaze)
-      option.map(r1, refocus(_, r.input))
+      use r2 <- option.map(r1)
+      refocus(r2, r2.input)
     }
     _ -> Some(r)
   }
