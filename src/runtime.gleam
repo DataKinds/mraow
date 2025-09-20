@@ -1,4 +1,5 @@
 import gleam/option.{type Option, None, Some}
+import gleam/string
 import parser as cnon
 
 type Recipe {
@@ -24,9 +25,26 @@ fn remember(
   Runtime(..r, recipes: [Recipe(pattern, effect), ..r.recipes])
 }
 
+/// Replace the Runtime's input entirely
+fn reinput(r: Runtime, input: cnon.Canonical) {
+  Runtime(..r, focus: input, input: input)
+}
+
 /// Refocus the runtime on a different part of the input
 fn refocus(r: Runtime, foc: cnon.Canonical) {
   Runtime(..r, focus: foc)
+}
+
+/// Deletes the next matching pair of parens from the input totally
+fn drop_gaze(r: Runtime) -> Option(Runtime) {
+  use #(tok, rest) <- cnon.gaze_then(r.focus)
+  let distance_from_end = string.length(cnon.uncanon(rest))
+  r
+  |> reinput(
+    { string.slice(todo, todo, todo) <> string.slice(todo, todo, todo) }
+    |> cnon.canonicalize,
+  )
+  |> Some
 }
 
 /// Eat a recipe under the focus, or fail and return None
@@ -36,7 +54,13 @@ pub fn eat_recipe(r: Runtime) -> Option(Runtime) {
     "<>" -> {
       use #(pattern, rest2) <- cnon.gaze_then(rest1)
       use #(effect, _rest3) <- cnon.gaze_then(rest2)
-      r |> remember(pattern, effect) |> refocus(r.input) |> Some
+      let r1 =
+        r
+        |> remember(pattern, effect)
+        |> drop_gaze
+        |> option.then(drop_gaze)
+        |> option.then(drop_gaze)
+      option.map(r1, refocus(_, r.input))
     }
     _ -> Some(r)
   }
